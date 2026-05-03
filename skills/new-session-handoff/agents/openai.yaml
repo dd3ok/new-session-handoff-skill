@@ -1,0 +1,7 @@
+interface:
+  display_name: "New Session Handoff"
+  short_description: "Prepare safe agent session handoffs"
+  default_prompt: "Use $new-session-handoff to create a self-contained HANDOFF.md and fresh-session prompt."
+
+policy:
+  allow_implicit_invocation: true

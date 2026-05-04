@@ -15,3 +15,14 @@ This repository contains session-continuity assets for coding agents such as Cod
 - Do not claim a skill can execute interactive slash commands.
 - Use exact command names, exact markers, and conservative safety checks.
 - Prefer concise files over broad documentation.
+
+## Validation
+
+Before committing changes to this repository, run:
+
+```bash
+python3 scripts/check-frontmatter.py
+python3 scripts/check-marker-block.py
+python3 scripts/validate-examples.py
+python3 scripts/validate-repo.py
+```

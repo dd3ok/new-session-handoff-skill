@@ -12,6 +12,7 @@
 - Inspects files listed under `Files to inspect first`.
 - Reports mismatch before editing.
 - Trusts disk over handoff text.
+- Marks the handoff stale if branch, HEAD, status, required files, or validation assumptions drift without an expected-drift note.
 - Stops after the report unless the user explicitly asked to continue implementation and the next step is safe.
 
 ## Failure Conditions
@@ -19,3 +20,4 @@
 - Implements immediately before disk verification.
 - Treats `HANDOFF.md` as authoritative over current files.
 - Ignores extra dirty files.
+- Continues past stale branch, HEAD, missing-path, or validation drift without reporting it.

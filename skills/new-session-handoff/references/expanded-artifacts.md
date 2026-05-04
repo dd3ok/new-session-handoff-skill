@@ -42,6 +42,8 @@ handoffs/<timestamp-or-slug>/details/pitfalls.md
 - `details/pitfalls.md`: failed approaches, misleading files, edge cases, and do-not-repeat notes.
 - `details/open-questions.md`: unresolved questions and why they block or do not block continuation.
 
+Use the matching `references/detail-*-template.md` file as a starting point when a detail artifact needs a durable structure.
+
 ## Rules
 
 - Each artifact answers one recovery question.

@@ -39,6 +39,7 @@
 - `git diff --cached --stat`: none
 - Latest commit: `b17f00d Add invoice integration coverage`
 - Instruction files loaded: `AGENTS.md`, `PLAN.md`
+- Expected drift from captured state: none
 
 ## Required Reading
 

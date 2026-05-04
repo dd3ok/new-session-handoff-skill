@@ -4,6 +4,7 @@ All notable changes to this repository are documented here.
 
 ## Unreleased
 
+- Add repository validation scripts, detail artifact templates, staleness rules, and MIT license files.
 - Add a four-line `TL;DR / Operational Summary` requirement to handoff manifests.
 - Reframe `HANDOFF.md` as a recoverable entry manifest rather than a forced full summary.
 - Add focused expanded handoff artifact guidance for large architecture or multi-file work.

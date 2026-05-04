@@ -1,6 +1,7 @@
 ---
 name: new-session-handoff
 description: "Create or resume a verified HANDOFF.md for coding-agent session transfer when context is full, after compaction/session rotation, or when switching agents. Captures repo state, changed files, decisions, validation, pitfalls, risks, and the next safe step. Triggers: 핸드오프 만들어줘, 핸드오프 읽고 이어서."
+license: MIT
 ---
 
 # New Session Handoff
@@ -137,6 +138,7 @@ Use this mode when the user asks to continue from a handoff, read `HANDOFF.md`, 
 2. Compare `HANDOFF.md` with the actual working tree.
    - If they conflict, trust the working tree and report the mismatch.
    - Mark missing or uncertain handoff details as `확인 필요` or `Unknown`.
+   - Treat the handoff as stale if branch, short HEAD, dirty files, required paths, or validation assumptions differ from the recorded snapshot without an explicit expected-drift note.
 
 3. Report before editing:
    - Loaded instructions
@@ -157,6 +159,7 @@ Read the matching one-level reference before drafting each artifact:
 - Read `references/handoff-template.md` when producing or updating `HANDOFF.md`.
 - Read `references/new-session-prompt-template.txt` when producing `NEW_SESSION_PROMPT`.
 - Read `references/expanded-artifacts.md` before creating focused detail artifacts.
+- Use `references/detail-architecture-template.md`, `references/detail-changed-files-template.md`, `references/detail-validation-template.md`, and `references/detail-pitfalls-template.md` as starting points for expanded detail artifacts when applicable.
 - Read `references/quality-checklist.md` before setting `SAFE_FOR_NEW_SESSION: yes`.
 - Read `references/marker-semantics.md` before printing automation markers.
 

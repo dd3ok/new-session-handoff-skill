@@ -25,6 +25,7 @@ Use this checklist before setting `SAFE_FOR_NEW_SESSION: yes`.
 - The next step is vague, broad, or blocked by an unanswered question.
 - The handoff contains unredacted secrets or raw secret-bearing logs.
 - Validation failed and the next session cannot safely continue from the recorded state.
+- Branch, HEAD, dirty files, required paths, or validation assumptions differ from the handoff without an expected-drift note.
 
 ## Marker Block
 

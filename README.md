@@ -234,7 +234,7 @@ Marker meanings:
 | `HANDOFF_MODE` | `compact`, `expanded`, or `prompt-only` |
 | `DETAIL_ARTIFACTS_READY` | `yes` when expanded artifacts exist and are indexed, `not-needed` for compact/prompt-only, otherwise `no` |
 | `NEW_SESSION_PROMPT_READY` | `yes` when a copy-paste continuation prompt is present |
-| `DISK_STATE_RECORDED` | `yes` when cwd, Git root, branch, HEAD, status, and diff summary are recorded or explicitly unavailable |
+| `DISK_STATE_RECORDED` | `yes` when cwd, Git root, branch, HEAD, status, and diff summary are recorded |
 | `VALIDATION_RECORDED` | `yes` when validation status is recorded, including passed, failed, or intentionally skipped validation with a low-risk reason and next command |
 | `SECRET_REDACTION_CHECKED` | `yes` when the handoff was checked for secrets and sensitive values were omitted or redacted |
 | `SAFE_FOR_NEW_SESSION` | `yes` only when the next session can reconstruct state and continue safely |
@@ -256,6 +256,19 @@ Set `SAFE_FOR_NEW_SESSION: yes` only when all of these are true:
 - secret redaction was checked.
 
 Otherwise set `SAFE_FOR_NEW_SESSION: no` and explain the blocker.
+
+## Staleness Rules
+
+A resume session must report the handoff as stale before editing when:
+
+- current branch differs from the recorded branch and the handoff did not mark that drift as expected,
+- current HEAD differs from the recorded short HEAD and the handoff did not mark that drift as expected,
+- `git status --short` contains files not listed in the Change Manifest,
+- files listed in the Change Manifest or Required Reading no longer exist,
+- validation predates dependency, lockfile, CI, or configuration changes that affect the next step,
+- focused detail artifact paths are missing or unreadable.
+
+Stale does not always mean unsafe. If the mismatch is explained, narrow, and the next step remains executable, the fresh session may continue after reporting it. Otherwise it must stop after the verification report.
 
 ## Safety And Security
 
@@ -364,7 +377,7 @@ Before tagging a release:
 - check `references/handoff-template.md` and `references/new-session-prompt-template.txt` still match the skill,
 - check `references/marker-semantics.md` matches README marker descriptions,
 - verify examples use the current marker block,
-- run or manually review eval cases,
+- run `python3 scripts/validate-repo.py`,
 - confirm no secrets, tokens, private URLs, or environment values appear in examples or templates,
 - update `CHANGELOG.md`.
 

@@ -20,6 +20,7 @@ For each case:
 - Large work uses focused detail artifacts instead of forced 100-line compression.
 - Resume mode verifies disk state before implementation.
 - Disk state wins over handoff text.
+- Stale branch, HEAD, status, required-file, detail-artifact, or validation drift is reported before implementation.
 - Secrets are redacted.
 - `SKILL.md` frontmatter parses as valid YAML.
 - The final automation marker block is present and honest.

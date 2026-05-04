@@ -39,6 +39,7 @@
 - `git diff --cached --stat`: none
 - Latest commit: `cab005e Add checkout retry logging`
 - Instruction files loaded: `AGENTS.md`
+- Expected drift from captured state: none
 
 ## Required Reading
 

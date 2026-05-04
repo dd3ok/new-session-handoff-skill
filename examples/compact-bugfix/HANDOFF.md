@@ -39,6 +39,7 @@
 - `git diff --cached --stat`: none
 - Latest commit: `d34db33 Add auth session tests`
 - Instruction files loaded: `AGENTS.md`
+- Expected drift from captured state: none
 
 ## Required Reading
 

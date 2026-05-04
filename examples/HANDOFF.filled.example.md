@@ -39,6 +39,7 @@
 - `git diff --cached --stat`: none
 - Latest commit: `a1b2c3d Add report filtering tests`
 - Instruction files loaded: `AGENTS.md`
+- Expected drift from captured state: none
 
 ## Required Reading
 

@@ -41,6 +41,7 @@
 - `git diff --cached --stat`:
 - Latest commit:
 - Instruction files loaded:
+- Expected drift from captured state: none
 
 ## Required Reading
 

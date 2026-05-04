@@ -164,6 +164,7 @@ If `HANDOFF.md` conflicts with files on disk, the working tree wins and the mism
 
 `HANDOFF.md` must include:
 
+- four-line `TL;DR / Operational Summary`
 - recovery contract and trust order
 - repo snapshot
 - required reading order

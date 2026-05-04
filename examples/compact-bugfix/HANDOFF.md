@@ -1,5 +1,12 @@
 # Handoff Manifest
 
+## TL;DR / Operational Summary
+
+- Goal: Fix a null-token crash in login without changing the auth API.
+- Current state: Null-token guard, focused regression test, and lint are recorded as complete in this handoff.
+- Next action: Summarize changed files and validation results for the user.
+- Blocker: none.
+
 ## Recovery Contract
 
 - Handoff schema version: `1`

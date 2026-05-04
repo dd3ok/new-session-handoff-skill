@@ -1,5 +1,12 @@
 # Handoff Manifest
 
+## TL;DR / Operational Summary
+
+- Goal: Add CSV export for the project reports table.
+- Current state: CSV helper and export button are implemented; focused export tests still need to be added.
+- Next action: Add tests for CSV escaping and filtered-row export.
+- Blocker: none.
+
 ## Recovery Contract
 
 - Handoff schema version: `1`

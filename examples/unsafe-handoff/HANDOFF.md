@@ -1,5 +1,12 @@
 # Handoff Manifest
 
+## TL;DR / Operational Summary
+
+- Goal: Debug a flaky checkout test without rotating while validation is active.
+- Current state: `npm test -- checkout` is still running and its result is unknown.
+- Next action: Wait for the running command to finish and record the result.
+- Blocker: test command still running.
+
 ## Recovery Contract
 
 - Handoff schema version: `1`

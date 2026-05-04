@@ -1,5 +1,12 @@
 # Handoff Manifest
 
+## TL;DR / Operational Summary
+
+- Goal: Split billing invoice generation into a service boundary while preserving the HTTP API.
+- Current state: Service boundary is introduced; focused integration test is red on timestamp formatting.
+- Next action: Fix timestamp formatting in `src/billing/invoiceService.ts` and rerun the focused integration test.
+- Blocker: none.
+
 ## Recovery Contract
 
 - Handoff schema version: `1`

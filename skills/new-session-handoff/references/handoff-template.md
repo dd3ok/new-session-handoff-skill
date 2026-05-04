@@ -2,6 +2,13 @@
 
 `HANDOFF.md` is the recoverable entry manifest. Keep it compact and scannable. If details are too large, link focused detail artifacts in the required reading order.
 
+## TL;DR / Operational Summary
+
+- Goal:
+- Current state:
+- Next action:
+- Blocker:
+
 ## Recovery Contract
 
 - Handoff schema version: `1`

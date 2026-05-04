@@ -90,6 +90,7 @@ Use this mode when the user asks to make a handoff, says `핸드오프 만들어
 
 7. Make the handoff recoverable.
    - The next session must be able to continue from the repository state and the handoff artifacts alone.
+   - Put a four-line `TL;DR / Operational Summary` near the top with `Goal`, `Current state`, `Next action`, and `Blocker`.
    - If the handoff conflicts with the actual working tree, instruct the next session to trust the working tree.
    - Include the smallest safe first step, not only a broad to-do list.
    - If detail artifacts are used, include a required reading order in `HANDOFF.md`.

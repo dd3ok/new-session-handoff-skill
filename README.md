@@ -102,7 +102,7 @@ Use `prompt-only` when the user wants a copy-paste continuation prompt but does 
 
 - Context is nearly full or compaction happened.
 - A long task needs to move to a new Codex, Claude, Gemini, or similar session.
-- A user asks for `HANDOFF.md`, `NEW_SESSION_PROMPT`, `핸드오프`, or `이어서 작업할 프롬프트`.
+- A user asks for `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, `핸드오프`, or `이어서 작업할 프롬프트`.
 - An external PTY orchestrator needs safe readiness markers before rotating a session.
 - A team needs a reusable handoff format across repositories.
 
@@ -134,11 +134,12 @@ The skill should inspect the real repository state first:
 - `git diff --name-status`
 - staged diff state
 - changed or inspected files
-- relevant instruction files such as `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.md`, `GEMINI.md`, `PLAN.md`, `PLANS.md`, `.agents/**`, and `.claude/**`
+- relevant instruction files such as `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.md`, `GEMINI.md`, `PLAN.md`, and `PLANS.md`
+- directly relevant `.agents/` or `.claude/` files only; do not recursively load every agent config directory by default
 
 Create mode is read-mostly. It should not modify application code while preparing the handoff.
 
-After inspection, the skill writes `HANDOFF.md`, optionally writes focused detail artifacts, produces `NEW_SESSION_PROMPT`, and ends with one versioned marker block.
+After inspection, the skill writes `HANDOFF.md`, optionally writes focused detail artifacts, produces `NEW_SESSION_PROMPT.txt`, and ends with one versioned marker block.
 
 ### Resume From Handoff
 
@@ -276,6 +277,8 @@ Do not copy secrets, API keys, cookies, credentials, private keys, full environm
 
 Use `<REDACTED>` for sensitive values and record only the variable name or category when needed.
 
+Before setting `SECRET_REDACTION_CHECKED: yes`, scan generated artifacts such as `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, and referenced `details/*.md`. Do not read `.env*`, credential stores, private keys, shell history, or secret manager files unless the user explicitly asks and it is necessary.
+
 Examples:
 
 ```text
@@ -290,7 +293,7 @@ When unsure whether output contains a secret, omit the value and mark the item a
 The skill prepares or consumes:
 
 - `HANDOFF.md`
-- `NEW_SESSION_PROMPT`
+- `NEW_SESSION_PROMPT.txt`
 - focused detail artifacts
 - readiness markers such as `SAFE_FOR_NEW_SESSION`
 
@@ -390,3 +393,5 @@ HANDOFF_SCHEMA_VERSION: 1
 ```
 
 Breaking changes to required sections, marker names, marker meanings, or detail artifact path resolution should increment the schema version and update examples, evals, README, and orchestrator guidance together.
+
+The marker value schema lives at `skills/new-session-handoff/schemas/handoff-automation-v1.schema.json`.

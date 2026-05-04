@@ -6,7 +6,7 @@ It is not a Skill. The `new-session-handoff` skill prepares handoff artifacts; t
 
 ## Responsibilities
 
-- Skill `new-session-handoff`: inspect repository state, create `HANDOFF.md`, `NEW_SESSION_PROMPT`, or focused detail artifacts, and print readiness markers.
+- Skill `new-session-handoff`: inspect repository state, create `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or focused detail artifacts, and print readiness markers.
 - External orchestrator: inspect the agent's status command, detect near-full context or compact events, wait for work completion, request handoff generation, send the agent-specific session-reset command, and inject the resume prompt.
 
 ## Rotation Flow
@@ -83,7 +83,7 @@ Continue only if SAFE_FOR_NEW_SESSION is yes and the user asked for implementati
 ## Safe Rotation Conditions
 
 - The previous session has completed or paused at a clean checkpoint.
-- `HANDOFF.md` exists or the orchestrator captured `NEW_SESSION_PROMPT`.
+- `HANDOFF.md` exists or the orchestrator captured `NEW_SESSION_PROMPT.txt`.
 - cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat` were recorded in the handoff.
 - Dirty and staged files were recorded.
 - Last validation command and result were recorded, or skipped validation has an explicit low-risk reason and next validation command.

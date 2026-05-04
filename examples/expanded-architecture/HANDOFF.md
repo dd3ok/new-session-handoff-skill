@@ -12,7 +12,13 @@
 - Handoff schema version: `1`
 - Handoff mode: `expanded`
 - Safe for new session: `yes`
-- Trust order: disk/current working tree, then `HANDOFF.md`, then focused detail artifacts.
+- Trust order:
+  1. Current explicit user instruction in this session.
+  2. Current working tree and Git state.
+  3. Repository instruction files such as AGENTS.md, CLAUDE.md, GEMINI.md, PLAN.md.
+  4. HANDOFF.md.
+  5. Focused detail artifacts referenced by HANDOFF.md.
+  6. Prior chat history only if explicitly provided by the user.
 - Do not implement until disk state is verified: yes
 - Secret redaction checked: `yes`
 - Blockers: `none`
@@ -86,6 +92,7 @@
 - Key failure lines, if failed: see `details/validation.md`
 - Checks not run and why: full test suite not run while focused integration test is red.
 - Required next validation: `npm test -- tests/billing/invoice.integration.test.ts`
+- Secret redaction check: manual artifact scan
 - Observable completion criteria: focused integration test and billing unit tests pass.
 
 ## Remaining Work

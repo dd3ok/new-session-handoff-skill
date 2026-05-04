@@ -40,7 +40,7 @@ handoffs/<timestamp-or-slug>/details/pitfalls.md
 - `details/changed-files.md`: file-by-file semantic changes and anchors to inspect.
 - `details/validation.md`: commands run, short results, key failure lines, and next checks.
 - `details/pitfalls.md`: failed approaches, misleading files, edge cases, and do-not-repeat notes.
-- `details/open-questions.md`: unresolved questions and why they block or do not block continuation.
+- `details/open-questions.md`: unresolved questions and why they block or do not block continuation. Use `references/detail-open-questions-template.md` as the starting point.
 
 Use the matching `references/detail-*-template.md` file as a starting point when a detail artifact needs a durable structure.
 

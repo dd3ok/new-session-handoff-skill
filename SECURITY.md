@@ -4,7 +4,7 @@ This repository contains a handoff skill that summarizes local repository state.
 
 ## Secret Redaction
 
-Do not write these values into `HANDOFF.md`, `NEW_SESSION_PROMPT`, or focused detail artifacts:
+Do not write these values into `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or focused detail artifacts:
 
 - API keys, tokens, cookies, credentials, private keys, or passwords
 - full `.env` values or secret-bearing config
@@ -18,6 +18,8 @@ Use `<REDACTED>` for secret values and record only the variable name or category
 
 - Prefer concise command results over raw logs.
 - Prefer file paths, symbols, and short failure snippets over transcript dumps.
+- Do not read `.env*`, secret manager files, private keys, shell history, or credential stores unless explicitly requested and necessary.
+- Scan generated handoff artifacts by default, not the whole repository.
 - Set `SECRET_REDACTION_CHECKED: no` and `SAFE_FOR_NEW_SESSION: no` if redaction cannot be verified.
 - Do not publish generated handoff artifacts without reviewing them for secrets.
 

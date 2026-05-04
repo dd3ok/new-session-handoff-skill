@@ -36,7 +36,26 @@ DETAIL_TEMPLATES = [
     "detail-architecture-template.md",
     "detail-changed-files-template.md",
     "detail-validation-template.md",
+    "detail-open-questions-template.md",
     "detail-pitfalls-template.md",
+]
+MARKER_ENUMS = {
+    "HANDOFF_SCHEMA_VERSION": {"1"},
+    "HANDOFF_MODE": {"compact", "expanded", "prompt-only"},
+    "DETAIL_ARTIFACTS_READY": {"yes", "no", "not-needed"},
+    "NEW_SESSION_PROMPT_READY": {"yes", "no"},
+    "DISK_STATE_RECORDED": {"yes", "no"},
+    "VALIDATION_RECORDED": {"yes", "no"},
+    "SECRET_REDACTION_CHECKED": {"yes", "no"},
+    "SAFE_FOR_NEW_SESSION": {"yes", "no"},
+}
+TRUST_ORDER_LINES = [
+    "1. Current explicit user instruction in this session.",
+    "2. Current working tree and Git state.",
+    "3. Repository instruction files such as AGENTS.md, CLAUDE.md, GEMINI.md, PLAN.md.",
+    "4. HANDOFF.md.",
+    "5. Focused detail artifacts referenced by HANDOFF.md.",
+    "6. Prior chat history only if explicitly provided by the user.",
 ]
 
 
@@ -79,6 +98,8 @@ class Validator:
 
         name = data.get("name", "")
         description = data.get("description", "")
+        if set(data) != {"name", "description"}:
+            self.fail("SKILL.md frontmatter must contain only name and description")
         if name != SKILL_DIR.name:
             self.fail(f"frontmatter name must match skill directory: {name!r}")
         if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?", name):
@@ -87,6 +108,11 @@ class Validator:
             self.fail("frontmatter description is required")
         if len(description) > 1024:
             self.fail("frontmatter description exceeds 1024 characters")
+        lower_description = description.lower()
+        if "explicit" not in lower_description:
+            self.fail("frontmatter description must limit use to explicit user requests")
+        if "/new" not in lower_description or "pty" not in lower_description:
+            self.fail("frontmatter description must state the session-control boundary")
         body = "\n".join(lines[end + 1 :])
         if not body.strip().startswith("# New Session Handoff"):
             self.fail("SKILL.md body should start with '# New Session Handoff'")
@@ -97,7 +123,12 @@ class Validator:
             self.require_exists(SKILL_DIR / ref)
         for name in DETAIL_TEMPLATES:
             self.require_exists(SKILL_DIR / "references" / name)
-        self.require_exists(SKILL_DIR / "agents" / "openai.yaml")
+        self.require_exists(SKILL_DIR / "schemas" / "handoff-automation-v1.schema.json")
+        openai_yaml = self.read(SKILL_DIR / "agents" / "openai.yaml")
+        if "allow_implicit_invocation" in openai_yaml:
+            self.fail("agents/openai.yaml must not use unvalidated allow_implicit_invocation policy")
+        if "NEW_SESSION_PROMPT.txt" not in skill_text:
+            self.fail("SKILL.md must name NEW_SESSION_PROMPT.txt as the canonical prompt file")
 
     def extract_marker_block(self, text: str, path: Path) -> list[str] | None:
         pattern = re.compile(
@@ -122,6 +153,7 @@ class Validator:
             expected_names = [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES]
             if actual_names != expected_names:
                 self.fail(f"{path.relative_to(ROOT)} marker block does not match expected field order")
+            self.validate_marker_values(path, block)
 
         for path in [
             SKILL_DIR / "SKILL.md",
@@ -133,6 +165,34 @@ class Validator:
             for marker in [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES[1:-1]]:
                 if marker not in text:
                     self.fail(f"{path.relative_to(ROOT)} missing marker name {marker}")
+
+    def validate_marker_values(self, path: Path, block: list[str]) -> None:
+        values: dict[str, str] = {}
+        for line in block:
+            if ":" not in line:
+                continue
+            key, value = line.split(":", 1)
+            values[key] = value.strip()
+        if any("<" in value or "|" in value for value in values.values()):
+            if "references/handoff-template.md" not in path.as_posix():
+                self.fail(f"{path.relative_to(ROOT)} marker block contains placeholder values")
+            return
+        for key, allowed in MARKER_ENUMS.items():
+            value = values.get(key, "")
+            if value not in allowed:
+                self.fail(f"{path.relative_to(ROOT)} marker {key} has invalid value {value!r}")
+        if values.get("SAFE_FOR_NEW_SESSION") == "yes":
+            for key in ["DISK_STATE_RECORDED", "VALIDATION_RECORDED", "SECRET_REDACTION_CHECKED"]:
+                if values.get(key) != "yes":
+                    self.fail(f"{path.relative_to(ROOT)} SAFE_FOR_NEW_SESSION=yes requires {key}=yes")
+            if values.get("BLOCKERS") != "none":
+                self.fail(f"{path.relative_to(ROOT)} SAFE_FOR_NEW_SESSION=yes requires BLOCKERS=none")
+            mode = values.get("HANDOFF_MODE")
+            detail_state = values.get("DETAIL_ARTIFACTS_READY")
+            if mode == "expanded" and detail_state != "yes":
+                self.fail(f"{path.relative_to(ROOT)} expanded handoff requires DETAIL_ARTIFACTS_READY=yes")
+            if mode in {"compact", "prompt-only"} and detail_state != "not-needed":
+                self.fail(f"{path.relative_to(ROOT)} {mode} handoff requires DETAIL_ARTIFACTS_READY=not-needed")
 
     def validate_handoff_sections(self) -> None:
         required_sections = [
@@ -162,8 +222,15 @@ class Validator:
                 "If disk state differs" not in text
                 and "If the handoff conflicts" not in text
                 and "Trust order: disk/current working tree" not in text
+                and "Current working tree and Git state" not in text
             ):
                 self.fail(f"{path.relative_to(ROOT)} must state disk-conflict handling")
+            if "SECRET_REDACTION_CHECKED: yes" in text and "Secret redaction check:" not in text:
+                self.fail(f"{path.relative_to(ROOT)} records secret check yes without a check method")
+        template = self.read(SKILL_DIR / "references" / "handoff-template.md")
+        for line in TRUST_ORDER_LINES:
+            if line not in template:
+                self.fail(f"handoff-template.md missing trust order line: {line}")
 
     def validate_expanded_artifacts(self) -> None:
         handoff = ROOT / "examples" / "expanded-architecture" / "HANDOFF.md"

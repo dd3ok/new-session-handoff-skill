@@ -1,7 +1,6 @@
 ---
 name: new-session-handoff
-description: "Create or resume a verified HANDOFF.md for coding-agent session transfer when context is full, after compaction/session rotation, or when switching agents. Captures repo state, changed files, decisions, validation, pitfalls, risks, and the next safe step. Triggers: 핸드오프 만들어줘, 핸드오프 읽고 이어서."
-license: MIT
+description: "Use only when the user explicitly asks to create or resume HANDOFF.md artifacts for coding-agent session transfer, asks for a new-session continuation prompt, or says 핸드오프 만들어줘 / 핸드오프 읽고 이어서. Does not run /new, control PTYs, or modify application code while creating a handoff."
 ---
 
 # New Session Handoff
@@ -12,7 +11,7 @@ Prepare or resume a fresh coding-agent session without relying on prior chat his
 
 This skill must not run interactive session commands such as Codex `/new`, control an agent CLI, or rotate sessions. In create mode, it writes handoff artifacts only and must not modify application code.
 
-Create mode is read-mostly. It may write `HANDOFF.md`, `NEW_SESSION_PROMPT`, or focused handoff detail artifacts only. It must not edit application code, run broad refactors, install dependencies, or start long-running commands.
+Create mode is read-mostly. It may write `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or focused handoff detail artifacts only. It must not edit application code, run broad refactors, install dependencies, or start long-running commands.
 
 This is an artifact-only skill. `/status`, `/new`, PTY control, context-threshold policy, and session rotation belong to external orchestrators, not this skill.
 
@@ -45,9 +44,17 @@ A short handoff that loses critical recovery information is worse than a longer 
 
 ## Secret Hygiene
 
-Never copy secrets, tokens, API keys, cookies, private credentials, private keys, full environment variable values, shell history, or unredacted secret-bearing logs into `HANDOFF.md`, `NEW_SESSION_PROMPT`, or detail artifacts.
+Never copy secrets, tokens, API keys, cookies, private credentials, private keys, full environment variable values, shell history, or unredacted secret-bearing logs into `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or detail artifacts.
 
 Redact values as `<REDACTED>` and record only the variable name, file category, or secret category when needed. If secret redaction cannot be verified, set `SECRET_REDACTION_CHECKED: no` and `SAFE_FOR_NEW_SESSION: no`.
+
+Before setting `SECRET_REDACTION_CHECKED: yes`:
+
+1. Do not read `.env*`, secret manager files, private keys, shell history, or credential stores unless the user explicitly asks and it is necessary.
+2. If such files appear in `git status` or `git diff --name-status`, record only the path category and redact values.
+3. Scan generated handoff artifacts, not the whole repository by default: `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, and referenced `details/*.md`.
+4. If a secret scanner is available, run it against generated artifacts. Otherwise perform a manual pattern check and record `Secret redaction check: manual`.
+5. If any artifact contains unredacted secret-like content, set `SAFE_FOR_NEW_SESSION: no`.
 
 ## Create Handoff
 
@@ -63,7 +70,8 @@ Use this mode when the user asks to make a handoff, says `핸드오프 만들어
    - `git diff --name-status`
    - `git diff --cached --stat`
    - `git log -1 --oneline`
-   - relevant instruction files: `AGENTS.md`, `AGENTS.override.md`, `PLANS.md`, `PLAN.md`, `HANDOFF.md`, `CLAUDE.md`, `GEMINI.md`, `.agents/**`, `.claude/**`
+   - relevant instruction files: `AGENTS.md`, `AGENTS.override.md`, `PLANS.md`, `PLAN.md`, `HANDOFF.md`, `CLAUDE.md`, `GEMINI.md`
+   - discover but do not recursively read all `.agents/**` or `.claude/**`; read only project-level instruction files and directly relevant skill or command files
 
 2. Read enough files to verify recovery state.
    - Prefer instruction files, current handoff artifacts, changed files, and files needed for the next step.
@@ -81,13 +89,13 @@ Use this mode when the user asks to make a handoff, says `핸드오프 만들어
    - Do not create raw transcript dumps, long logs, or full diffs unless the user explicitly asks and they are essential for recovery.
 
 5. Produce the requested artifact(s):
-   - `NEW_SESSION_PROMPT`: a copy-paste prompt for a fresh agent session.
+   - `NEW_SESSION_PROMPT.txt`: the default copy-paste prompt file for a fresh agent session, written beside `HANDOFF.md`.
    - `HANDOFF.md`: a self-contained entry manifest.
    - Optional focused detail artifacts for large tasks.
 
 6. Write only what the user requested:
    - If asked to create a handoff, write or update `HANDOFF.md` by default unless another path was requested.
-   - If asked only for a prompt, do not write files; embed a self-contained Markdown handoff draft in the prompt instead of pointing to `HANDOFF.md`.
+   - If asked only for a prompt, do not write files; embed a self-contained Markdown handoff draft in the prompt instead of pointing to `HANDOFF.md`, and set the new session prompt path to `not-written`.
 
 7. Make the handoff recoverable.
    - The next session must be able to continue from the repository state and the handoff artifacts alone.
@@ -157,9 +165,9 @@ Use this mode when the user asks to continue from a handoff, read `HANDOFF.md`, 
 Read the matching one-level reference before drafting each artifact:
 
 - Read `references/handoff-template.md` when producing or updating `HANDOFF.md`.
-- Read `references/new-session-prompt-template.txt` when producing `NEW_SESSION_PROMPT`.
+- Read `references/new-session-prompt-template.txt` when producing `NEW_SESSION_PROMPT.txt`.
 - Read `references/expanded-artifacts.md` before creating focused detail artifacts.
-- Use `references/detail-architecture-template.md`, `references/detail-changed-files-template.md`, `references/detail-validation-template.md`, and `references/detail-pitfalls-template.md` as starting points for expanded detail artifacts when applicable.
+- Use `references/detail-architecture-template.md`, `references/detail-changed-files-template.md`, `references/detail-validation-template.md`, `references/detail-open-questions-template.md`, and `references/detail-pitfalls-template.md` as starting points for expanded detail artifacts when applicable.
 - Read `references/quality-checklist.md` before setting `SAFE_FOR_NEW_SESSION: yes`.
 - Read `references/marker-semantics.md` before printing automation markers.
 

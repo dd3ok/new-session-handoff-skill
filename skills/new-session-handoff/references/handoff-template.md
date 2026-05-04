@@ -14,7 +14,13 @@
 - Handoff schema version: `1`
 - Handoff mode: `compact | expanded | prompt-only`
 - Safe for new session: `yes | no`
-- Trust order: disk/current working tree, then `HANDOFF.md`, then focused detail artifacts.
+- Trust order:
+  1. Current explicit user instruction in this session.
+  2. Current working tree and Git state.
+  3. Repository instruction files such as AGENTS.md, CLAUDE.md, GEMINI.md, PLAN.md.
+  4. HANDOFF.md.
+  5. Focused detail artifacts referenced by HANDOFF.md.
+  6. Prior chat history only if explicitly provided by the user.
 - Do not implement until disk state is verified: yes
 - Secret redaction checked: `yes | no`
 - Blockers: `none | <short reason>`
@@ -89,6 +95,7 @@ Relative detail artifact paths are resolved against the directory containing thi
 - Key failure lines, if failed:
 - Checks not run and why:
 - Required next validation:
+- Secret redaction check:
 - Observable completion criteria:
 
 ## Remaining Work
@@ -101,8 +108,10 @@ Relative detail artifact paths are resolved against the directory containing thi
 ## Fresh Session Prompt
 
 ```text
-[Paste or reference the generated NEW_SESSION_PROMPT here. It must tell the next session to read this HANDOFF.md first, verify disk state, inspect required files, and stop if SAFE_FOR_NEW_SESSION is not yes.]
+[Paste or reference the generated NEW_SESSION_PROMPT.txt here. It must tell the next session to read this HANDOFF.md first, verify disk state, inspect required files, and stop if SAFE_FOR_NEW_SESSION is not yes.]
 ```
+
+- New session prompt path: `NEW_SESSION_PROMPT.txt | not-written`
 
 ## Automation Markers
 

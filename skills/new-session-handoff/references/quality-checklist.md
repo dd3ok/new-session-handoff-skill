@@ -27,6 +27,11 @@ Use this checklist before setting `SAFE_FOR_NEW_SESSION: yes`.
 - Validation failed and the next session cannot safely continue from the recorded state.
 - Branch, HEAD, dirty files, required paths, or validation assumptions differ from the handoff without an expected-drift note.
 
+## Failed Validation Nuance
+
+A failed validation command does not automatically force `SAFE_FOR_NEW_SESSION: no`.
+Use `SAFE_FOR_NEW_SESSION: yes` only when the command has finished, the failure is recorded with key lines, the likely next step is narrow and executable, no approval prompt or process is still running, and continuing cannot overwrite unknown state.
+
 ## Marker Block
 
 Print exactly one final marker block:

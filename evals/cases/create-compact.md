@@ -12,7 +12,7 @@ The user asks: "핸드오프 만들어줘" after a small bug fix. One source fil
 - Records cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
 - Lists changed and inspected files.
 - Includes decisions, pitfalls, validation, and one smallest next step.
-- Includes or produces `NEW_SESSION_PROMPT`.
+- Includes or produces `NEW_SESSION_PROMPT.txt`.
 - Prints the versioned marker block.
 - Sets `HANDOFF_MODE: compact`.
 - Sets `DETAIL_ARTIFACTS_READY: not-needed`.

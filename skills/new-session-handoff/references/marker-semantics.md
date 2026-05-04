@@ -31,3 +31,14 @@ END_HANDOFF_AUTOMATION_V1
 - `SECRET_REDACTION_CHECKED`: `yes` only after checking that secrets were not copied into artifacts.
 - `SAFE_FOR_NEW_SESSION`: `yes` only when the quality checklist passes.
 - `BLOCKERS`: `none` or a short reason that prevents safe rotation.
+
+The marker value schema is recorded in `schemas/handoff-automation-v1.schema.json`.
+
+For generated handoffs, `SAFE_FOR_NEW_SESSION: yes` implies:
+
+- `DISK_STATE_RECORDED: yes`
+- `VALIDATION_RECORDED: yes`
+- `SECRET_REDACTION_CHECKED: yes`
+- `BLOCKERS: none`
+- `DETAIL_ARTIFACTS_READY: yes` for expanded mode
+- `DETAIL_ARTIFACTS_READY: not-needed` for compact or prompt-only mode

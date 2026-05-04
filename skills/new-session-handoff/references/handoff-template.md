@@ -1,6 +1,6 @@
 # Handoff Manifest
 
-`HANDOFF.md` is the recoverable entry manifest. Keep it compact and scannable. If details are too large, link focused detail artifacts in the required reading order.
+Use this skeleton with `references/handoff-contract.md`. Keep `HANDOFF.md` as the recoverable entry manifest. Move large rationale, file ledgers, validation notes, and pitfalls into focused detail artifacts when expanded mode is needed.
 
 ## TL;DR / Operational Summary
 
@@ -14,16 +14,12 @@
 - Handoff schema version: `1`
 - Handoff mode: `compact | expanded | prompt-only`
 - Safe for new session: `yes | no`
-- Trust order:
-  1. Current explicit user instruction in this session.
-  2. Current working tree and Git state.
-  3. Repository instruction files such as AGENTS.md, CLAUDE.md, GEMINI.md, PLAN.md.
-  4. HANDOFF.md.
-  5. Focused detail artifacts referenced by HANDOFF.md.
-  6. Prior chat history only if explicitly provided by the user.
+- Trust order: current user instruction, working tree/Git state, repository instructions, `HANDOFF.md`, referenced detail artifacts, prior chat only if explicitly provided.
 - Do not implement until disk state is verified: yes
 - Secret redaction checked: `yes | no`
 - Blockers: `none | <short reason>`
+
+If the handoff conflicts with the actual working tree, trust the working tree and report the mismatch before editing.
 
 ## Session Target
 

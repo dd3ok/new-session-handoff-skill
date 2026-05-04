@@ -1,8 +1,8 @@
 # Automation Marker Semantics
 
-Automation markers communicate whether an external PTY controller may rotate the session. They do not prove the code is correct.
+The canonical marker contract now lives in `references/handoff-contract.md`.
 
-Use exactly one final marker block:
+Use that file for field meanings, `SAFE_FOR_NEW_SESSION` implications, and the exact marker block:
 
 ```text
 HANDOFF_AUTOMATION_V1
@@ -19,26 +19,4 @@ BLOCKERS: none|<short reason>
 END_HANDOFF_AUTOMATION_V1
 ```
 
-## Fields
-
-- `HANDOFF_READY`: absolute path to `HANDOFF.md`, or `not-written` for prompt-only mode.
-- `HANDOFF_SCHEMA_VERSION`: currently `1`.
-- `HANDOFF_MODE`: `compact`, `expanded`, or `prompt-only`.
-- `DETAIL_ARTIFACTS_READY`: `not-needed` for compact/prompt-only, otherwise `yes` only when every referenced artifact exists.
-- `NEW_SESSION_PROMPT_READY`: `yes` when a copy-paste prompt was produced.
-- `DISK_STATE_RECORDED`: `yes` only when cwd, Git root, branch, short HEAD, status, and diff stat were recorded.
-- `VALIDATION_RECORDED`: `yes` when validation status is recorded. This includes a passed command, failed command, or intentionally skipped validation with an explicit low-risk reason and next validation command. Use `no` only when validation status is missing or unclear.
-- `SECRET_REDACTION_CHECKED`: `yes` only after checking that secrets were not copied into artifacts.
-- `SAFE_FOR_NEW_SESSION`: `yes` only when the quality checklist passes.
-- `BLOCKERS`: `none` or a short reason that prevents safe rotation.
-
-The marker value schema is recorded in `schemas/handoff-automation-v1.schema.json`.
-
-For generated handoffs, `SAFE_FOR_NEW_SESSION: yes` implies:
-
-- `DISK_STATE_RECORDED: yes`
-- `VALIDATION_RECORDED: yes`
-- `SECRET_REDACTION_CHECKED: yes`
-- `BLOCKERS: none`
-- `DETAIL_ARTIFACTS_READY: yes` for expanded mode
-- `DETAIL_ARTIFACTS_READY: not-needed` for compact or prompt-only mode
+The machine-readable value schema is `schemas/handoff-automation-v1.schema.json`.

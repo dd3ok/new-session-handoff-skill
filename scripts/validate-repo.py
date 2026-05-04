@@ -11,6 +11,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = ROOT / "skills" / "new-session-handoff"
+SKILL_SCRIPTS = SKILL_DIR / "scripts"
+sys.path.insert(0, str(SKILL_SCRIPTS))
+
+from handoff_contract import (  # noqa: E402
+    MARKER_BLOCK_END,
+    MARKER_BLOCK_START,
+    marker_allowed_values,
+    marker_field_order,
+    marker_template_lines,
+)
+
 EXPECTED_MARKER_LINES = [
     "HANDOFF_AUTOMATION_V1",
     "HANDOFF_READY: <absolute path or not-written>",
@@ -39,6 +50,11 @@ DETAIL_TEMPLATES = [
     "detail-open-questions-template.md",
     "detail-pitfalls-template.md",
 ]
+CANONICAL_REFERENCES = [
+    "handoff-contract.md",
+    "handoff-template.md",
+    "new-session-prompt-template.txt",
+]
 MARKER_ENUMS = {
     "HANDOFF_SCHEMA_VERSION": {"1"},
     "HANDOFF_MODE": {"compact", "expanded", "prompt-only"},
@@ -52,9 +68,9 @@ MARKER_ENUMS = {
 TRUST_ORDER_LINES = [
     "1. Current explicit user instruction in this session.",
     "2. Current working tree and Git state.",
-    "3. Repository instruction files such as AGENTS.md, CLAUDE.md, GEMINI.md, PLAN.md.",
-    "4. HANDOFF.md.",
-    "5. Focused detail artifacts referenced by HANDOFF.md.",
+    "3. Repository instruction files such as `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `PLAN.md`, and `PLANS.md`.",
+    "4. `HANDOFF.md`.",
+    "5. Focused detail artifacts referenced by `HANDOFF.md`.",
     "6. Prior chat history only if explicitly provided by the user.",
 ]
 
@@ -120,7 +136,11 @@ class Validator:
     def validate_references(self) -> None:
         skill_text = self.read(SKILL_DIR / "SKILL.md")
         for ref in sorted(set(re.findall(r"`(references/[^`]+)`", skill_text))):
+            if "*" in ref:
+                continue
             self.require_exists(SKILL_DIR / ref)
+        for name in CANONICAL_REFERENCES:
+            self.require_exists(SKILL_DIR / "references" / name)
         for name in DETAIL_TEMPLATES:
             self.require_exists(SKILL_DIR / "references" / name)
         self.require_exists(SKILL_DIR / "schemas" / "handoff-automation-v1.schema.json")
@@ -130,9 +150,18 @@ class Validator:
         if "NEW_SESSION_PROMPT.txt" not in skill_text:
             self.fail("SKILL.md must name NEW_SESSION_PROMPT.txt as the canonical prompt file")
 
+    def validate_schema_contract(self) -> None:
+        expected_names = [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES[1:-1]]
+        if marker_field_order() != expected_names:
+            self.fail("schema required[] order must match repository marker order")
+        if marker_template_lines() != EXPECTED_MARKER_LINES:
+            self.fail("schema-derived marker template lines must match repository marker block")
+        if marker_allowed_values() != MARKER_ENUMS:
+            self.fail("schema enum/const marker values must match validator constants")
+
     def extract_marker_block(self, text: str, path: Path) -> list[str] | None:
         pattern = re.compile(
-            r"```text\n(HANDOFF_AUTOMATION_V1\n.*?END_HANDOFF_AUTOMATION_V1)\n```",
+            rf"```text\n({MARKER_BLOCK_START}\n.*?{MARKER_BLOCK_END})\n```",
             re.DOTALL,
         )
         blocks = pattern.findall(text)
@@ -150,19 +179,18 @@ class Validator:
             if block is None:
                 continue
             actual_names = [line.split(":", 1)[0] for line in block]
-            expected_names = [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES]
+            expected_names = [MARKER_BLOCK_START, *marker_field_order(), MARKER_BLOCK_END]
             if actual_names != expected_names:
                 self.fail(f"{path.relative_to(ROOT)} marker block does not match expected field order")
             self.validate_marker_values(path, block)
 
         for path in [
-            SKILL_DIR / "SKILL.md",
+            SKILL_DIR / "references" / "handoff-contract.md",
             SKILL_DIR / "references" / "marker-semantics.md",
             SKILL_DIR / "references" / "quality-checklist.md",
-            ROOT / "README.md",
         ]:
             text = self.read(path)
-            for marker in [line.split(":", 1)[0] for line in EXPECTED_MARKER_LINES[1:-1]]:
+            for marker in marker_field_order():
                 if marker not in text:
                     self.fail(f"{path.relative_to(ROOT)} missing marker name {marker}")
 
@@ -227,10 +255,10 @@ class Validator:
                 self.fail(f"{path.relative_to(ROOT)} must state disk-conflict handling")
             if "SECRET_REDACTION_CHECKED: yes" in text and "Secret redaction check:" not in text:
                 self.fail(f"{path.relative_to(ROOT)} records secret check yes without a check method")
-        template = self.read(SKILL_DIR / "references" / "handoff-template.md")
+        template = self.read(SKILL_DIR / "references" / "handoff-contract.md")
         for line in TRUST_ORDER_LINES:
             if line not in template:
-                self.fail(f"handoff-template.md missing trust order line: {line}")
+                self.fail(f"handoff-contract.md missing trust order line: {line}")
 
     def validate_expanded_artifacts(self) -> None:
         handoff = ROOT / "examples" / "expanded-architecture" / "HANDOFF.md"
@@ -264,6 +292,7 @@ class Validator:
         all_checks = {
             "frontmatter": self.validate_frontmatter,
             "references": self.validate_references,
+            "schema": self.validate_schema_contract,
             "markers": self.validate_marker_blocks,
             "examples": self.validate_handoff_sections,
             "expanded": self.validate_expanded_artifacts,
@@ -291,7 +320,7 @@ def main() -> int:
         "--check",
         action="append",
         default=[],
-        help="Check to run: frontmatter, references, markers, examples, expanded, secrets, all",
+        help="Check to run: frontmatter, references, schema, markers, examples, expanded, secrets, all",
     )
     args = parser.parse_args()
     checks = set(args.check or ["all"])

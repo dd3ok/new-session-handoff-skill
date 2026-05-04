@@ -5,172 +5,52 @@ description: "Use only when the user explicitly asks to create or resume HANDOFF
 
 # New Session Handoff
 
-## Purpose
-
 Prepare or resume a fresh coding-agent session without relying on prior chat history, hidden reasoning, tool output, or compacted context.
 
-This skill must not run interactive session commands such as Codex `/new`, control an agent CLI, or rotate sessions. In create mode, it writes handoff artifacts only and must not modify application code.
+This is an artifact-only skill. It must not run `/new`, `/status`, control PTYs, rotate sessions, define context-threshold policy, or claim that it executed an interactive reset command. External orchestrators own those actions.
 
-Create mode is read-mostly. It may write `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or focused handoff detail artifacts only. It must not edit application code, run broad refactors, install dependencies, or start long-running commands.
+In create mode, write handoff artifacts only. Do not modify application code, run broad refactors, install dependencies, start long-running commands, or ask for approval to do unrelated work.
 
-This is an artifact-only skill. `/status`, `/new`, PTY control, context-threshold policy, and session rotation belong to external orchestrators, not this skill.
+Always preserve secret hygiene. Do not copy secrets, tokens, API keys, cookies, private keys, full environment variable values, shell history, or secret-bearing logs into handoff artifacts. Redact required mentions as `<REDACTED>`.
 
-## Core Policy
+## Required Contract
 
-Recoverability first. Compactness second.
+Read `references/handoff-contract.md` before creating, updating, validating, or resuming a handoff. It is the canonical runtime contract for:
 
-`HANDOFF.md` is always the recoverable entry manifest. For small or medium tasks, it may contain all details. For large tasks, it must remain the landing page and required reading order for focused detail artifacts.
+- required `HANDOFF.md` sections
+- trust order and disk-state verification
+- compact, expanded, and prompt-only modes
+- `SAFE_FOR_NEW_SESSION` rules
+- automation marker semantics
+- secret hygiene
+- stale or conflicting handoffs
 
-For large tasks, use `HANDOFF.md` as an entry manifest plus focused detail artifacts. By default, place artifacts in a `details/` directory beside `HANDOFF.md`, for example `details/architecture.md`, `details/changed-files.md`, `details/validation.md`, and `details/pitfalls.md`.
+Read `references/handoff-template.md` when drafting `HANDOFF.md`.
 
-Detail artifact paths listed in `HANDOFF.md` are relative to the directory containing `HANDOFF.md` unless the user explicitly requests another layout.
+Read `references/new-session-prompt-template.txt` when drafting `NEW_SESSION_PROMPT.txt`.
 
-Default size policy:
-
-- Small or medium tasks: keep `HANDOFF.md` compact and scannable, roughly under 100-150 lines when that does not lose recovery information.
-- Large architecture or multi-file tasks: do not force all context into a fixed line budget. Keep `HANDOFF.md` compact and move detailed rationale, validation logs, change ledgers, and pitfalls into focused artifacts.
-- A fresh session reads `HANDOFF.md` first, then only the detail artifacts needed for the smallest next step.
-
-Never compress away:
-
-- verified decisions and rationale
-- changed, created, deleted, or inspected files
-- validation commands and results
-- known risks, pitfalls, and failed approaches
-- unresolved questions
-- the smallest executable next step
-
-A short handoff that loses critical recovery information is worse than a longer handoff with clear structure.
-
-## Secret Hygiene
-
-Never copy secrets, tokens, API keys, cookies, private credentials, private keys, full environment variable values, shell history, or unredacted secret-bearing logs into `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, or detail artifacts.
-
-Redact values as `<REDACTED>` and record only the variable name, file category, or secret category when needed. If secret redaction cannot be verified, set `SECRET_REDACTION_CHECKED: no` and `SAFE_FOR_NEW_SESSION: no`.
-
-Before setting `SECRET_REDACTION_CHECKED: yes`:
-
-1. Do not read `.env*`, secret manager files, private keys, shell history, or credential stores unless the user explicitly asks and it is necessary.
-2. If such files appear in `git status` or `git diff --name-status`, record only the path category and redact values.
-3. Scan generated handoff artifacts, not the whole repository by default: `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, and referenced `details/*.md`.
-4. If a secret scanner is available, run it against generated artifacts. Otherwise perform a manual pattern check and record `Secret redaction check: manual`.
-5. If any artifact contains unredacted secret-like content, set `SAFE_FOR_NEW_SESSION: no`.
+Use `references/detail-*-template.md` only when expanded mode needs focused detail artifacts.
 
 ## Create Handoff
 
-Use this mode when the user asks to make a handoff, says `핸드오프 만들어줘` or `핸드오프 문서 만들어줘`, save `HANDOFF.md`, prepare a new-session prompt, or preserve context before a new session.
+Use this mode when the user asks to create `HANDOFF.md`, prepare a new-session prompt, preserve context before a fresh session, or says `핸드오프 만들어줘`.
 
-1. Inspect current state before summarizing:
-   - `pwd`
-   - `git rev-parse --show-toplevel` if inside a Git repository
-   - `git branch --show-current`
-   - `git rev-parse --short HEAD`
-   - `git status --short`
-   - `git diff --stat`
-   - `git diff --name-status`
-   - `git diff --cached --stat`
-   - `git log -1 --oneline`
-   - relevant instruction files: `AGENTS.md`, `AGENTS.override.md`, `PLANS.md`, `PLAN.md`, `HANDOFF.md`, `CLAUDE.md`, `GEMINI.md`
-   - discover but do not recursively read all `.agents/**` or `.claude/**`; read only project-level instruction files and directly relevant skill or command files
-
-2. Read enough files to verify recovery state.
-   - Prefer instruction files, current handoff artifacts, changed files, and files needed for the next step.
-   - Do not expand into implementation investigation beyond what is needed to create a recoverable handoff.
-
-3. Summarize only verified facts.
-   - Do not invent file paths, commands, test results, branch names, or decisions.
-   - Mark unknowns as `확인 필요` or `Unknown`.
-   - Prefer exact paths and exact commands.
-   - Keep log snippets short and include only lines needed to identify the result or failure.
-
-4. Choose the size strategy:
-   - Small or medium task: write one compact manifest `HANDOFF.md`.
-   - Large task: write `HANDOFF.md` as the entry manifest and create focused detail artifacts. Each artifact must answer one recovery question, such as what architecture changed, what files changed, what validation ran, what failed, or what remains.
-   - Do not create raw transcript dumps, long logs, or full diffs unless the user explicitly asks and they are essential for recovery.
-
-5. Produce the requested artifact(s):
-   - `NEW_SESSION_PROMPT.txt`: the default copy-paste prompt file for a fresh agent session, written beside `HANDOFF.md`.
-   - `HANDOFF.md`: a self-contained entry manifest.
-   - Optional focused detail artifacts for large tasks.
-
-6. Write only what the user requested:
-   - If asked to create a handoff, write or update `HANDOFF.md` by default unless another path was requested.
-   - If asked only for a prompt, do not write files; embed a self-contained Markdown handoff draft in the prompt instead of pointing to `HANDOFF.md`, and set the new session prompt path to `not-written`.
-
-7. Make the handoff recoverable.
-   - The next session must be able to continue from the repository state and the handoff artifacts alone.
-   - Put a four-line `TL;DR / Operational Summary` near the top with `Goal`, `Current state`, `Next action`, and `Blocker`.
-   - If the handoff conflicts with the actual working tree, instruct the next session to trust the working tree.
-   - Include the smallest safe first step, not only a broad to-do list.
-   - If detail artifacts are used, include a required reading order in `HANDOFF.md`.
-
-8. End with markers for automation:
-
-   ```text
-   HANDOFF_AUTOMATION_V1
-   HANDOFF_READY: <absolute path or not-written>
-   HANDOFF_SCHEMA_VERSION: 1
-   HANDOFF_MODE: compact|expanded|prompt-only
-   DETAIL_ARTIFACTS_READY: yes|no|not-needed
-   NEW_SESSION_PROMPT_READY: yes|no
-   DISK_STATE_RECORDED: yes|no
-   VALIDATION_RECORDED: yes|no
-   SECRET_REDACTION_CHECKED: yes|no
-   SAFE_FOR_NEW_SESSION: yes|no
-   BLOCKERS: none|<short reason>
-   END_HANDOFF_AUTOMATION_V1
-   ```
-
-   Use `SAFE_FOR_NEW_SESSION: yes` only when all are true:
-   - No command, build, test, dev server, or approval prompt is still running.
-   - Current repo state was recorded: cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
-   - Changed, created, deleted, moved, staged, or inspected files are listed or explicitly marked `none`.
-   - Every referenced detail artifact exists, or expanded artifacts are explicitly `not-needed`.
-   - Validation command and result are recorded, or skipped validation has an explicit low-risk reason and a next validation command.
-   - Secret redaction was checked.
-   - No unresolved user question blocks the next session.
-   - The next step is singular and executable.
+1. Inspect current disk state before summarizing. At minimum record cwd, Git root if any, branch, short HEAD, `git status --short`, `git diff --stat`, `git diff --name-status`, staged diff state, latest commit, and relevant instruction files.
+2. Read only enough files to make the handoff recoverable: instruction files, existing handoff artifacts, changed files, and files needed for the smallest next step.
+3. Write only verified facts. Mark unknowns as `Unknown` or `확인 필요`.
+4. Choose `compact`, `expanded`, or `prompt-only` according to `references/handoff-contract.md`.
+5. Produce only the requested artifacts: `HANDOFF.md`, `NEW_SESSION_PROMPT.txt`, and focused `details/*.md` files when expanded mode needs them.
+6. End with exactly one `HANDOFF_AUTOMATION_V1` marker block.
 
 ## Resume From Handoff
 
-Use this mode when the user asks to continue from a handoff, read `HANDOFF.md`, or says `핸드오프 읽고 작업해줘`, `핸드오프 문서 읽고 작업해줘`, or `핸드오프 보고 이어서 작업`.
+Use this mode when the user asks to read `HANDOFF.md`, continue from a handoff, or says `핸드오프 읽고 이어서 작업`.
 
-1. Establish context before implementing:
-   - Confirm `pwd`, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
-   - Read applicable instruction files and `HANDOFF.md`.
-   - If `HANDOFF.md` contains a required reading order, read only the focused detail artifacts needed for the smallest next step.
-   - Resolve relative detail artifact paths against the directory containing `HANDOFF.md`.
-   - Inspect files listed under `Files to inspect first`, `Required Reading`, and `Change Manifest`.
-   - Verify that referenced paths exist or report missing paths before editing.
+1. Confirm cwd, Git root, branch, short HEAD, `git status --short`, and `git diff --stat`.
+2. Read applicable instruction files and `HANDOFF.md`.
+3. If `HANDOFF.md` lists focused detail artifacts, read only the artifacts needed for the smallest next step.
+4. Compare handoff claims with the actual working tree. If they conflict, trust the working tree and report the mismatch.
+5. Report loaded instructions, repo state, handoff consistency, detail artifacts read, missing paths, and the smallest next step before editing.
+6. If `SAFE_FOR_NEW_SESSION` is not `yes`, stop after the report unless the user explicitly instructs how to proceed.
 
-2. Compare `HANDOFF.md` with the actual working tree.
-   - If they conflict, trust the working tree and report the mismatch.
-   - Mark missing or uncertain handoff details as `확인 필요` or `Unknown`.
-   - Treat the handoff as stale if branch, short HEAD, dirty files, required paths, or validation assumptions differ from the recorded snapshot without an explicit expected-drift note.
-
-3. Report before editing:
-   - Loaded instructions
-   - Repo state
-   - Handoff consistency
-   - Detail artifacts read, if any
-   - Missing or conflicting paths, if any
-   - Smallest next step
-
-4. If `SAFE_FOR_NEW_SESSION` is not `yes`, stop after the report unless the user explicitly instructs you how to proceed.
-
-5. If the user asked only to inspect or resume context, stop after the report. If the user explicitly asked to continue implementation and verification is safe, proceed with only the smallest remaining task, following repository instructions and running the narrowest relevant validation after changes.
-
-## Templates
-
-Read the matching one-level reference before drafting each artifact:
-
-- Read `references/handoff-template.md` when producing or updating `HANDOFF.md`.
-- Read `references/new-session-prompt-template.txt` when producing `NEW_SESSION_PROMPT.txt`.
-- Read `references/expanded-artifacts.md` before creating focused detail artifacts.
-- Use `references/detail-architecture-template.md`, `references/detail-changed-files-template.md`, `references/detail-validation-template.md`, `references/detail-open-questions-template.md`, and `references/detail-pitfalls-template.md` as starting points for expanded detail artifacts when applicable.
-- Read `references/quality-checklist.md` before setting `SAFE_FOR_NEW_SESSION: yes`.
-- Read `references/marker-semantics.md` before printing automation markers.
-
-## Automation Boundary
-
-External agents such as Hermes or OpenClaw may use the final markers to decide when to send a session-reset command to an agent CLI PTY. This skill itself must not claim to execute `/new` or any other interactive reset command; it only prepares safe continuation artifacts.
+If the user asked only to inspect or resume context, stop after the report. If they explicitly asked to continue implementation and the handoff is safe, proceed with only the smallest remaining task under the repository instructions.

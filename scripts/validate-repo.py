@@ -149,6 +149,8 @@ class Validator:
             ".new-session-handoff/HANDOFF.md",
             "Do not create `NEW_SESSION_PROMPT.txt` by default",
             "delete only untracked generated handoff artifacts",
+            "A handoff is adopted only after",
+            "For inspect-only requests, do not clean up by default.",
         ]
         for phrase in required_skill_phrases:
             if phrase not in skill_text:
@@ -161,6 +163,8 @@ class Validator:
             "embedded",
             "legacy `HANDOFF.md`",
             "Do not delete tracked files",
+            "cleanup happens only after adoption",
+            "Cleanup scope is limited to the selected generated handoff",
         ]
         for phrase in required_contract_phrases:
             if phrase not in contract_text:

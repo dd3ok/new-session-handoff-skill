@@ -21,7 +21,7 @@ For each case:
 - `HANDOFF.md` embeds a `## Resume Prompt`; `NEW_SESSION_PROMPT.txt` is not created by default.
 - Large work uses focused detail artifacts instead of forced 100-line compression.
 - Resume mode verifies disk state before implementation.
-- Verified safe resume deletes only untracked generated handoff artifacts.
+- Verified safe adopted resume deletes only untracked generated handoff artifacts.
 - Disk state wins over handoff text.
 - Stale branch, HEAD, status, required-file, detail-artifact, or validation drift is reported before implementation.
 - Secrets are redacted.

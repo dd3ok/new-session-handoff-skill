@@ -21,6 +21,8 @@ Resume lookup order:
 - `expanded`: `HANDOFF.md` remains the entry manifest and links focused `details/*.md` artifacts relative to the handoff directory.
 - `prompt-only`: no files are written; the response contains a self-contained continuation prompt and marker values use `HANDOFF_READY: not-written`.
 
+Use expanded mode only when a compact `HANDOFF.md` cannot remain both short and recoverable. Prefer expanded mode when `HANDOFF.md` would exceed roughly 120 lines, more than 8 changed files materially affect recovery, one architecture/design/debugging thread needs a focused note, or validation failure context must be preserved without copying long logs.
+
 Each detail artifact must answer one recovery question. Do not write raw transcripts, full diffs, long logs, shell history, or chat history unless the user explicitly asks and the content is essential and redacted.
 
 ## Required `HANDOFF.md` Shape
@@ -80,16 +82,34 @@ If `SAFE_FOR_NEW_SESSION` is not `yes`, stop after the report unless the user ex
 
 ## Cleanup
 
-After resume, delete generated handoff artifacts only when:
+Handoff artifacts are ephemeral by default, but cleanup happens only after adoption, not after mere reading.
+
+A selected handoff is adopted only when:
 
 - disk verification completed.
-- handoff is consistent, or mismatch was reported.
+- handoff claims were compared with the working tree.
+- a resume report was shown to the user.
+- the user requested continuation, not inspect-only loading.
 - `SAFE_FOR_NEW_SESSION: yes`.
-- artifact is generated and untracked.
-- all referenced detail artifacts were read or are not needed.
+- the handoff is generated and untracked.
+- referenced detail artifacts were read or explicitly not needed.
 - the user did not ask to preserve handoff records.
 
-Do not delete tracked files. Do not delete unsafe, stale, or user-authored handoffs.
+Do not delete when:
+
+- the request was inspect-only.
+- the handoff is unsafe.
+- the handoff is stale or conflicts with disk state.
+- the artifact is tracked.
+- the artifact is user-authored or outside `.new-session-handoff/`.
+- the selected handoff path was provided by the user outside the default generated handoff directory.
+- the artifact is needed to debug a failed resume.
+
+Cleanup scope is limited to the selected generated handoff and generated detail artifacts directly referenced by it. Do not use broad deletion such as `rm -rf .new-session-handoff`.
+
+Do not delete tracked files. Before deleting any generated handoff artifact, verify that it is untracked with `git ls-files --error-unmatch <path>`; if the command succeeds, the file is tracked and must not be deleted.
+
+Always report removed paths, kept paths, and reasons.
 
 ## Secret Hygiene
 

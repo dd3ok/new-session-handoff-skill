@@ -12,7 +12,7 @@ Default artifact:
 
 The default handoff embeds a `## Resume Prompt` section. `NEW_SESSION_PROMPT.txt` is not created unless the user explicitly asks for a separate prompt file or an external orchestrator requires one.
 
-After the next session reads and verifies the handoff, untracked generated handoff artifacts should be deleted. Tracked files and unsafe/stale handoffs must be preserved.
+Handoff artifacts are treated as single-use bootstrap files. After a successful resume, the agent may delete only adopted, generated, untracked handoff artifacts. It must not delete artifacts for inspect-only requests, unsafe or stale handoffs, tracked files, user-authored files, or handoffs outside the default generated handoff directory unless explicitly instructed.
 
 ## 한국어 사용 예
 
@@ -39,6 +39,8 @@ Runtime behavior is concentrated in the distributed skill:
 - Portable validator: `skills/new-session-handoff/scripts/validate_handoff.py`
 
 README is a map. The contract files above are the source of truth for marker semantics, `SAFE_FOR_NEW_SESSION`, trust order, expanded artifacts, cleanup, and resume behavior.
+
+The OpenAI agent descriptor intentionally does not set an invocation policy field. Routing is constrained by the `SKILL.md` description and should be used only for explicit handoff requests or clear natural-language equivalents.
 
 ## Repository Layout
 
@@ -87,6 +89,30 @@ ln -s ../../skills/new-session-handoff .agents/skills/new-session-handoff
 ln -s ../../skills/new-session-handoff .claude/skills/new-session-handoff
 ```
 
+### Copy Install
+
+Codex repo skill:
+
+```bash
+mkdir -p .agents/skills
+cp -R skills/new-session-handoff .agents/skills/new-session-handoff
+```
+
+Claude project skill:
+
+```bash
+mkdir -p .claude/skills
+cp -R skills/new-session-handoff .claude/skills/new-session-handoff
+```
+
+User-level install:
+
+```bash
+mkdir -p "$HOME/.agents/skills" "$HOME/.claude/skills"
+cp -R skills/new-session-handoff "$HOME/.agents/skills/new-session-handoff"
+cp -R skills/new-session-handoff "$HOME/.claude/skills/new-session-handoff"
+```
+
 ## Examples
 
 - `examples/compact-bugfix/`: compact handoff for a small bug fix.
@@ -110,7 +136,7 @@ Core expectations:
 - expanded mode uses focused detail artifacts instead of context dumps.
 - unsafe states do not emit `SAFE_FOR_NEW_SESSION: yes`.
 - secrets are redacted or omitted.
-- verified safe resume may delete only untracked generated handoff artifacts.
+- verified safe adopted resume may delete only untracked generated handoff artifacts.
 
 ## Validation
 

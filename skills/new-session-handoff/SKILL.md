@@ -39,7 +39,7 @@ Read `references/context-packaging.md` when deciding whether to use compact, exp
 
 Use when the user asks to create a handoff, preserve context for a fresh session, prepare a new-session prompt, or says `핸드오프 만들어줘`.
 
-1. Inspect disk state before summarizing: `pwd`, Git root if any, branch, short HEAD, `git status --short`, `git diff --stat`, `git diff --name-status`, staged diff state, latest commit, and relevant instruction files.
+1. Inspect disk state before summarizing: `pwd`, Git root if any, branch, short HEAD, `git status --short`, `git diff --stat`, `git diff --name-status`, staged diff state, latest commit, relevant instruction files, and relevant durable state files.
 2. Read only what is needed to recover: instruction files, relevant durable state files, existing handoff artifacts, changed files, and files needed for the smallest next step.
 3. Write verified facts only. Mark unknowns as `Unknown` or `확인 필요`.
 4. Keep the handoff short: no raw transcript, full diff, long logs, shell history, or speculative background.

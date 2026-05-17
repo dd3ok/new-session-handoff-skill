@@ -14,7 +14,7 @@
 
 기본 핸드오프에는 `## Resume Prompt` 섹션이 포함됩니다. `NEW_SESSION_PROMPT.txt`는 사용자가 별도의 프롬프트 파일을 명시적으로 요청하거나 외부 오케스트레이터가 필요로 하는 경우에만 생성됩니다.
 
-다음 세션이 핸드오프를 읽고 확인한 후에는 추적되지 않는 생성된 핸드오프 아티팩트는 삭제되어야 합니다. 추적된 파일과 안전하지 않거나 오래된 핸드오프는 보존되어야 합니다.
+다음 세션이 핸드오프를 읽고 현재 디스크/Git 상태와 비교한 뒤, `SAFE_FOR_NEW_SESSION: yes`인 핸드오프를 실제 resume/continue에 채택한 경우에만 선택된 추적되지 않는 generated handoff artifact를 삭제할 수 있습니다. inspect-only, tracked, stale, unsafe, external-path, user-authored artifact는 보존합니다.
 
 ## 한국어 사용 예시 (Usage Examples in Korean)
 

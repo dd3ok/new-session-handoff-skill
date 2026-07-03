@@ -234,8 +234,8 @@ class Validator:
 
         name = data.get("name", "")
         description = data.get("description", "")
-        if set(data) != {"name", "description", "argument-hint"}:
-            self.fail("SKILL.md frontmatter must contain only name, description, and argument-hint")
+        if set(data) != {"name", "description"}:
+            self.fail("SKILL.md frontmatter must contain only name and description")
         if name != SKILL_DIR.name:
             self.fail(f"frontmatter name must match skill directory: {name!r}")
         if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?", name):
@@ -245,8 +245,6 @@ class Validator:
         if len(description) > 1024:
             self.fail("frontmatter description exceeds 1024 characters")
         lower_description = description.lower()
-        if data.get("argument-hint") != "[save|load|text] [next-session focus]":
-            self.fail("SKILL.md argument-hint must describe save/load/text and optional focus")
         for term in [
             "context reset",
             "session transfer",

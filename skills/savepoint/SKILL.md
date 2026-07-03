@@ -1,7 +1,6 @@
 ---
 name: savepoint
 description: "Recoverable coding-session checkpoint at .savepoint/SAVEPOINT.md for context reset/session transfer. Use for 세이브포인트 만들어줘, 세이브포인트 로드해줘, 세이브포인트 읽어줘, 세이브포인트 이어서 해줘. Not for SQL SAVEPOINT, ordinary summaries, direct code/docs edits without checkpoint intent, /status, /new, PTY/session control, session rotation, or app features named savepoint."
-argument-hint: "[save|load|text] [next-session focus]"
 ---
 
 Modes:
